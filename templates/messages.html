@@ -1,0 +1,40 @@
+{% extends "base.html" %}{% block title %}Messages — Majestic Market{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:3rem;padding-bottom:4rem;max-width:780px;">
+  <div class="mb-4">
+    <span class="sec-label">Inbox</span>
+    <h1 class="sec-title">My <span class="acc">Messages</span></h1>
+    <div class="sec-line"></div>
+  </div>
+  {% if convs %}
+  <div class="d-flex flex-column gap-3">
+    {% for c in convs %}
+    <a href="{{ url_for('conversation',other_id=c.other_id,product_id=c.product_id) if c.product_id else url_for('conversation',other_id=c.other_id) }}" class="conv-item" style="text-decoration:none;">
+      <div class="d-flex align-items-center gap-3">
+        <div class="seller-avatar" style="width:46px;height:46px;font-size:1rem;flex-shrink:0;">{{ c.other_name[0].upper() }}</div>
+        <div class="flex-grow-1" style="overflow:hidden;">
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <strong style="color:var(--white);font-size:.9rem;">{{ c.other_name }}</strong>
+            {% if c.unread > 0 %}<div class="conv-unread-dot"></div><span style="color:var(--gold-400);font-size:.72rem;font-weight:600;">{{ c.unread }} new</span>{% endif %}
+          </div>
+          {% if c.prod_title %}<p style="color:var(--text-muted);font-size:.75rem;margin-bottom:.2rem;"><i class="bi bi-tag me-1" style="color:var(--gold-500)"></i>{{ c.prod_title[:40] }}</p>{% endif %}
+          {% if c.preview %}<p style="color:var(--text-3);font-size:.8rem;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ c.preview[:60] }}</p>{% endif %}
+        </div>
+        <div class="text-end flex-shrink-0">
+          <span style="color:var(--text-muted);font-size:.72rem;">{{ c.last_time[:10] }}</span>
+          <i class="bi bi-chevron-right" style="color:var(--text-muted);font-size:.75rem;display:block;margin-top:.2rem;"></i>
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <span class="empty-icon">💬</span>
+    <p class="empty-title">No messages yet</p>
+    <p class="empty-text">Browse products and message sellers to start a conversation.</p>
+    <a href="{{ url_for('products') }}" class="btn btn-gold">Browse Products</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block title %}Majestic Market — Premium Second-Hand Marketplace{% endblock %}
+{% block content %}
+
+<!-- ── HERO ──────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <div class="hero-eyebrow"><i class="bi bi-stars me-1"></i>Premium Marketplace</div>
+        <h1 class="hero-title">Buy &amp; Sell<br><span class="gold">Pre-Loved Treasures</span><br>with Confidence</h1>
+        <p class="hero-desc">Majestic Market connects buyers and sellers in an elegant, secure environment. Discover unique items at unbeatable prices — or list yours in minutes.</p>
+        <div class="d-flex flex-wrap gap-3">
+          <a href="{{ url_for('products') }}" class="btn btn-gold"><i class="bi bi-grid me-2"></i>Browse Products</a>
+          <a href="{{ url_for('register') }}" class="btn btn-outline-gold"><i class="bi bi-person-plus me-2"></i>Start Selling</a>
+        </div>
+        <div class="d-flex gap-4 mt-4">
+          <div class="hero-stat"><span class="hero-stat-num">{{ stats.products }}</span><span class="hero-stat-lbl">Listings</span></div>
+          <div class="hero-stat"><span class="hero-stat-num">{{ stats.users }}</span><span class="hero-stat-lbl">Sellers</span></div>
+          <div class="hero-stat"><span class="hero-stat-num">{{ stats.categories }}</span><span class="hero-stat-lbl">Categories</span></div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="glass-card p-4">
+          <p class="sec-label mb-3"><i class="bi bi-search me-1"></i>Quick Search</p>
+          <form action="{{ url_for('products') }}" method="get">
+            <div class="search-wrap mb-3">
+              <i class="bi bi-search search-icon"></i>
+              <input type="text" name="q" class="form-control search-input" placeholder="iPhone, sofa, guitar…"/>
+            </div>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              {% for cat in categories[:6] %}
+                <a href="{{ url_for('products') }}?category={{ cat.id }}" class="cat-pill"><i class="bi bi-{{ cat.icon }} me-1"></i>{{ cat.name }}</a>
+              {% endfor %}
+            </div>
+            <button type="submit" class="btn btn-gold w-100"><i class="bi bi-search me-2"></i>Search Marketplace</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CATEGORIES ─────────────────────────────────────────────── -->
+<section style="padding:2.5rem 0;background:rgba(6,16,31,.6);border-top:1px solid var(--glass-border);border-bottom:1px solid var(--glass-border);">
+  <div class="container">
+    <div class="row g-3">
+      {% for cat in categories %}
+      <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+        <a href="{{ url_for('products') }}?category={{ cat.id }}" class="cat-card">
+          <span class="cat-icon"><i class="bi bi-{{ cat.icon }}"></i></span>
+          <span class="cat-name">{{ cat.name }}</span>
+          <span class="cat-count">{{ cat.cnt }} items</span>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURED PRODUCTS ──────────────────────────────────────── -->
+<section class="sec-pad">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-3">
+      <div class="sec-head">
+        <span class="sec-label">Most Popular</span>
+        <h2 class="sec-title">Featured <span class="acc">Listings</span></h2>
+        <div class="sec-line"></div>
+      </div>
+      <a href="{{ url_for('products') }}" class="btn btn-glass">View All <i class="bi bi-arrow-right ms-1"></i></a>
+    </div>
+    {% if featured %}
+    <div class="row g-4">
+      {% for p in featured %}
+      <div class="col-xl-3 col-lg-4 col-md-6">
+        <a href="{{ url_for('product_detail',pid=p.id) }}" style="text-decoration:none;">
+          <div class="product-card">
+            <div class="pc-img-wrap">
+              <img src="{{ product_image_url(p.image) }}" class="pc-img" alt="{{ p.title }}" loading="lazy"
+                   onerror="this.src='https://picsum.photos/seed/default{{ p.id }}/600/450'"/>
+              <div style="position:absolute;top:.6rem;left:.6rem;display:flex;gap:.3rem;">
+                {% if loop.index <= 3 %}<span class="badge-gold">TOP</span>{% endif %}
+                <span class="badge-condition">{{ p.condition }}</span>
+              </div>
+            </div>
+            <div class="pc-body">
+              <p class="pc-cat"><i class="bi bi-{{ p.cat_icon }} me-1"></i>{{ p.cat }}</p>
+              <p class="pc-title">{{ p.title }}</p>
+              <p class="pc-price">¥{{ '%.0f'|format(p.price) }}</p>
+              <p class="pc-seller"><i class="bi bi-person me-1" style="color:var(--gold-500)"></i>{{ p.seller }}</p>
+            </div>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state"><span class="empty-icon">🛍️</span><p class="empty-title">No listings yet</p><a href="{{ url_for('new_product') }}" class="btn btn-gold mt-2">List First Item</a></div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- ── RECENTLY ADDED ─────────────────────────────────────────── -->
+<section class="sec-pad" style="background:rgba(6,16,31,.4);border-top:1px solid var(--glass-border);">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-3">
+      <div class="sec-head">
+        <span class="sec-label">Just Listed</span>
+        <h2 class="sec-title">Newest <span class="acc">Arrivals</span></h2>
+        <div class="sec-line"></div>
+      </div>
+      <a href="{{ url_for('products') }}?sort=newest" class="btn btn-glass">See More <i class="bi bi-arrow-right ms-1"></i></a>
+    </div>
+    <div class="row g-4">
+      {% for p in recent %}
+      <div class="col-xl-3 col-lg-4 col-md-6">
+        <a href="{{ url_for('product_detail',pid=p.id) }}" style="text-decoration:none;">
+          <div class="product-card">
+            <div class="pc-img-wrap">
+              <img src="{{ product_image_url(p.image) }}" class="pc-img" alt="{{ p.title }}" loading="lazy"
+                   onerror="this.src='https://picsum.photos/seed/new{{ p.id }}/600/450'"/>
+              <div style="position:absolute;top:.6rem;left:.6rem;"><span class="badge-new">NEW</span></div>
+            </div>
+            <div class="pc-body">
+              <p class="pc-cat"><i class="bi bi-{{ p.cat_icon }} me-1"></i>{{ p.cat }}</p>
+              <p class="pc-title">{{ p.title }}</p>
+              <p class="pc-price">¥{{ '%.0f'|format(p.price) }}</p>
+              <p class="pc-seller"><i class="bi bi-person me-1" style="color:var(--gold-500)"></i>{{ p.seller }}</p>
+            </div>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── RECENTLY VIEWED ─────────────────────────────────────────── -->
+{% if rv %}
+<section class="sec-pad-sm">
+  <div class="container">
+    <div class="sec-head mb-3">
+      <span class="sec-label">Your History</span>
+      <h2 class="sec-title" style="font-size:1.4rem;">Recently <span class="acc">Viewed</span></h2>
+    </div>
+    <div class="row g-3">
+      {% for p in rv %}
+      <div class="col-lg-3 col-md-6">
+        <a href="{{ url_for('product_detail',pid=p.id) }}" style="text-decoration:none;">
+          <div class="product-card">
+            <div class="pc-img-wrap"><img src="{{ product_image_url(p.image) }}" class="pc-img" alt="{{ p.title }}" loading="lazy" onerror="this.src='https://picsum.photos/seed/rv{{ p.id }}/600/450'"/></div>
+            <div class="pc-body">
+              <p class="pc-cat">{{ p.cat }}</p>
+              <p class="pc-title">{{ p.title }}</p>
+              <p class="pc-price">¥{{ '%.0f'|format(p.price) }}</p>
+            </div>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ── AI PROMO ─────────────────────────────────────────────────── -->
+<section class="sec-pad">
+  <div class="container">
+    <div class="glass-card p-5" style="background:linear-gradient(135deg,rgba(18,32,53,.95),rgba(30,61,102,.5));border-color:rgba(201,168,76,.28);">
+      <div class="row align-items-center g-4">
+        <div class="col-lg-8">
+          <span class="badge-gold mb-3 d-inline-block">✦ AI-Powered</span>
+          <h2 class="sec-title mb-2">Your Smart <span class="acc">Shopping Assistant</span></h2>
+          <p style="color:var(--text-2);font-size:.95rem;line-height:1.8;max-width:580px;">Find products by budget, generate listing descriptions, get pricing advice, and explore the marketplace — all through a natural conversation. No sign-up required for existing users.</p>
+        </div>
+        <div class="col-lg-4 text-center">
+          <div style="font-size:4rem;margin-bottom:1rem;text-shadow:0 0 40px var(--gold-glow);">✦</div>
+          <a href="{{ url_for('ai_assistant') }}" class="btn btn-gold btn-lg"><i class="bi bi-stars me-2"></i>Try AI Assistant</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

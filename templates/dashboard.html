@@ -1,0 +1,107 @@
+{% extends "base.html" %}{% block title %}Dashboard — Majestic Market{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:3rem;padding-bottom:4rem;">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+      <span class="sec-label">My Account</span>
+      <h1 class="sec-title">Welcome, <span class="acc">{{ session.username }}</span></h1>
+    </div>
+    {% if session.get('can_upload',True) %}
+    <a href="{{ url_for('new_product') }}" class="btn btn-gold"><i class="bi bi-plus-circle me-2"></i>List New Product</a>
+    {% else %}
+    <div class="badge-glass px-3 py-2"><i class="bi bi-lock me-1"></i>Upload permission revoked</div>
+    {% endif %}
+  </div>
+
+  <!-- Stats -->
+  <div class="row g-3 mb-5">
+    {% for icon,val,lbl in [('box-seam',products|length,'Active Listings'),('chat-dots',inbox_count,'Unread Messages'),('heart',fav_count,'Saved Items')] %}
+    <div class="col-md-4">
+      <div class="stat-card">
+        <div class="stat-icon-wrap"><i class="bi bi-{{ icon }}" style="color:var(--gold-400)"></i></div>
+        <div><div class="stat-val">{{ val }}</div><div class="stat-lbl">{{ lbl }}</div></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Quick actions -->
+  <div class="row g-3 mb-5">
+    {% for icon,lbl,href,desc in [
+      ('grid','Browse Market',url_for('products'),'Find items to buy'),
+      ('chat-dots','Messages',url_for('messages_inbox'),'View conversations'),
+      ('heart','Wishlist',url_for('favorites'),'Saved products'),
+      ('stars','AI Assistant',url_for('ai_assistant'),'Smart search'),
+      ('person','My Profile',url_for('profile',uid=session.user_id),'Public profile'),
+      ('pencil','Edit Profile',url_for('edit_profile'),'Update bio')
+    ] %}
+    <div class="col-md-2 col-4">
+      <a href="{{ href }}" class="glass-card p-3 d-block text-center" style="text-decoration:none;">
+        <i class="bi bi-{{ icon }}" style="font-size:1.5rem;color:var(--gold-400);display:block;margin-bottom:.4rem;"></i>
+        <p style="color:var(--white);font-size:.8rem;font-weight:600;margin:0;">{{ lbl }}</p>
+        <p style="color:var(--text-muted);font-size:.7rem;margin:0;">{{ desc }}</p>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- My Listings -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="sec-title" style="font-size:1.4rem;">My <span class="acc">Listings</span></h2>
+    {% if session.get('can_upload',True) %}
+    <a href="{{ url_for('new_product') }}" class="btn btn-glass btn-sm"><i class="bi bi-plus me-1"></i>Add New</a>
+    {% endif %}
+  </div>
+
+  {% if products %}
+  <div class="row g-4">
+    {% for p in products %}
+    <div class="col-xl-3 col-lg-4 col-md-6">
+      <div class="product-card">
+        <div class="pc-img-wrap">
+          <img src="{{ product_image_url(p.image) }}" class="pc-img" alt="{{ p.title }}" loading="lazy" onerror="this.src='https://picsum.photos/seed/d{{ p.id }}/600/450'"/>
+          <div style="position:absolute;top:.5rem;left:.5rem;">
+            {% if p.status=='available' %}<span class="badge-available">Available</span>
+            {% elif p.status=='sold' %}<span class="badge-sold">Sold</span>
+            {% else %}<span class="badge-reserved">Reserved</span>{% endif %}
+          </div>
+        </div>
+        <div class="pc-body">
+          <p class="pc-cat">{{ p.cat or 'Other' }}</p>
+          <p class="pc-title">{{ p.title }}</p>
+          <p class="pc-price">¥{{ '%.0f'|format(p.price) }}</p>
+          <p style="color:var(--text-muted);font-size:.72rem;margin-top:.3rem;"><i class="bi bi-calendar3 me-1"></i>{{ p.created_at[:10] }}</p>
+          <div class="pc-actions flex-wrap">
+            <a href="{{ url_for('product_detail',pid=p.id) }}" class="btn btn-glass btn-sm flex-fill" style="font-size:.75rem;border-radius:8px;"><i class="bi bi-eye me-1"></i>View</a>
+            <a href="{{ url_for('edit_product',pid=p.id) }}" class="btn btn-glass btn-sm flex-fill" style="font-size:.75rem;border-radius:8px;"><i class="bi bi-pencil me-1"></i>Edit</a>
+            <form method="post" action="{{ url_for('delete_product',pid=p.id) }}" style="flex:1;min-width:60px;">
+              <button type="submit" class="btn btn-danger-soft btn-sm w-100 confirm-delete" data-confirm="Delete '{{ p.title }}'?" style="font-size:.75rem;border-radius:8px;"><i class="bi bi-trash me-1"></i>Del</button>
+            </form>
+          </div>
+          <!-- Status buttons -->
+          <div class="d-flex gap-1 mt-1 flex-wrap">
+            {% for s,lbl in [('available','✅ Available'),('sold','🔴 Sold'),('reserved','🟡 Reserved')] %}
+            {% if p.status != s %}
+            <form method="post" action="{{ url_for('update_status',pid=p.id,new_status=s) }}" style="flex:1;">
+              <button class="btn btn-sm w-100" style="font-size:.68rem;padding:.2rem .3rem;border-radius:6px;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);color:var(--text-3);">{{ lbl }}</button>
+            </form>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <span class="empty-icon">📦</span>
+    <p class="empty-title">No listings yet</p>
+    <p class="empty-text">Start selling your unused items and earn money.</p>
+    {% if session.get('can_upload',True) %}
+    <a href="{{ url_for('new_product') }}" class="btn btn-gold"><i class="bi bi-plus-circle me-2"></i>List Your First Item</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

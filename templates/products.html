@@ -1,0 +1,103 @@
+{% extends "base.html" %}{% block title %}Browse Products — Majestic Market{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:3rem;padding-bottom:4rem;">
+  <div class="mb-4">
+    <span class="sec-label">Marketplace</span>
+    <h1 class="sec-title">Browse <span class="acc">Products</span></h1>
+    <div class="sec-line"></div>
+  </div>
+
+  <!-- Filters -->
+  <div class="glass-card p-3 mb-4">
+    <form action="{{ url_for('products') }}" method="get">
+      <div class="row g-2 align-items-end">
+        <div class="col-lg-4">
+          <div class="search-wrap">
+            <i class="bi bi-search search-icon"></i>
+            <input type="text" name="q" id="searchQuery" class="form-control search-input" placeholder="Search products…" value="{{ q }}"/>
+          </div>
+        </div>
+        <div class="col-lg-2">
+          <select name="category" class="form-select">
+            <option value="">All Categories</option>
+            {% for c in categories %}<option value="{{ c.id }}" {% if cat_id==c.id|string %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-6 col-lg-1"><input type="number" name="min_price" class="form-control" placeholder="Min ¥" value="{{ min_p }}" min="0"/></div>
+        <div class="col-6 col-lg-1"><input type="number" name="max_price" class="form-control" placeholder="Max ¥" value="{{ max_p }}" min="0"/></div>
+        <div class="col-6 col-lg-2">
+          <select name="sort" class="form-select">
+            <option value="newest" {% if sort=='newest' %}selected{% endif %}>Newest First</option>
+            <option value="oldest" {% if sort=='oldest' %}selected{% endif %}>Oldest First</option>
+            <option value="price_asc" {% if sort=='price_asc' %}selected{% endif %}>Price: Low → High</option>
+            <option value="price_desc" {% if sort=='price_desc' %}selected{% endif %}>Price: High → Low</option>
+            <option value="popular" {% if sort=='popular' %}selected{% endif %}>Most Popular</option>
+          </select>
+        </div>
+        <div class="col-6 col-lg-1">
+          <select name="status" class="form-select">
+            <option value="available" {% if status_f=='available' %}selected{% endif %}>Available</option>
+            <option value="all" {% if status_f=='all' %}selected{% endif %}>All</option>
+            <option value="sold" {% if status_f=='sold' %}selected{% endif %}>Sold</option>
+          </select>
+        </div>
+        <div class="col-lg-1">
+          <button type="submit" class="btn btn-gold w-100"><i class="bi bi-search"></i></button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Category pills -->
+  <div class="d-flex flex-wrap gap-2 mb-4">
+    <a href="{{ url_for('products') }}" class="cat-pill {% if not cat_id %}active{% endif %}">All</a>
+    {% for c in categories %}
+    <span class="cat-pill {% if cat_id==c.id|string %}active{% endif %}" data-cat="{{ c.id }}">
+      <i class="bi bi-{{ c.icon }} me-1"></i>{{ c.name }}
+    </span>
+    {% endfor %}
+  </div>
+
+  <p style="color:var(--text-muted);font-size:.82rem;margin-bottom:1.5rem;">
+    <i class="bi bi-grid me-1"></i><strong style="color:var(--gold-400)">{{ products|length }}</strong> product{{ 's' if products|length!=1 }} found{% if q %} for "<em style="color:var(--text-2)">{{ q }}</em>"{% endif %}
+  </p>
+
+  {% if products %}
+  <div class="row g-4">
+    {% for p in products %}
+    <div class="col-xl-3 col-lg-4 col-md-6">
+      <a href="{{ url_for('product_detail',pid=p.id) }}" style="text-decoration:none;">
+        <div class="product-card">
+          <div class="pc-img-wrap">
+            <img src="{{ product_image_url(p.image) }}" class="pc-img" alt="{{ p.title }}" loading="lazy" onerror="this.src='https://picsum.photos/seed/pr{{ p.id }}/600/450'"/>
+            <div style="position:absolute;top:.5rem;left:.5rem;">
+              {% if p.status=='available' %}<span class="badge-available">Available</span>
+              {% elif p.status=='sold' %}<span class="badge-sold">Sold</span>
+              {% else %}<span class="badge-reserved">Reserved</span>{% endif %}
+            </div>
+          </div>
+          <div class="pc-body">
+            <p class="pc-cat"><i class="bi bi-{{ p.cat_icon }} me-1"></i>{{ p.cat }}</p>
+            <p class="pc-title">{{ p.title }}</p>
+            <div class="d-flex align-items-center justify-content-between">
+              <p class="pc-price">¥{{ '%.0f'|format(p.price) }}</p>
+              <span class="badge-condition">{{ p.condition }}</span>
+            </div>
+            <p class="pc-seller"><i class="bi bi-person me-1" style="color:var(--gold-500)"></i>{{ p.seller }} · {{ p.created_at[:10] }}</p>
+          </div>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <span class="empty-icon">🔍</span>
+    <p class="empty-title">No products found</p>
+    <p class="empty-text">Try different keywords or clear filters.</p>
+    <a href="{{ url_for('products') }}" class="btn btn-glass me-2">Clear Filters</a>
+    {% if session.get('user_id') %}<a href="{{ url_for('new_product') }}" class="btn btn-gold">List an Item</a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

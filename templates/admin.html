@@ -1,0 +1,193 @@
+{% extends "base.html" %}{% block title %}Admin Dashboard — Majestic Market{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:3rem;padding-bottom:4rem;">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+      <span class="sec-label"><i class="bi bi-shield-check me-1"></i>Administration</span>
+      <h1 class="sec-title">Admin <span class="acc">Dashboard</span></h1>
+    </div>
+    <a href="{{ url_for('index') }}" class="btn btn-glass"><i class="bi bi-house me-1"></i>Back to Site</a>
+  </div>
+
+  <!-- Stats -->
+  <div class="row g-3 mb-5">
+    {% for icon,val,lbl in [
+      ('people',stats.users,'Users'),('box-seam',stats.products,'Products'),
+      ('check-circle',stats.available,'Available'),('x-circle',stats.sold,'Sold'),
+      ('chat-dots',stats.messages,'Messages'),('star',stats.reviews,'Reviews')
+    ] %}
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="stat-card">
+        <div class="stat-icon-wrap"><i class="bi bi-{{ icon }}" style="color:var(--gold-400)"></i></div>
+        <div><div class="stat-val">{{ val }}</div><div class="stat-lbl">{{ lbl }}</div></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Chart -->
+  <div class="glass-card p-4 mb-5">
+    <p class="sec-label mb-3">Available Listings by Category</p>
+    <div class="chart-bar-wrap" id="catChart">
+      {% for c in cat_stats %}
+      <div>
+        <div class="chart-bar" style="height:4%" data-value="{{ c.cnt }}" data-name="{{ c.name }}"></div>
+        <div class="chart-x-label">{{ c.name[:8] }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Search -->
+  <div class="glass-card p-3 mb-4">
+    <div class="search-wrap">
+      <i class="bi bi-search search-icon"></i>
+      <input type="text" id="adminSearch" class="form-control search-input" placeholder="Search users, products, messages…"/>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="admin-tabs">
+    {% for tab,icon,id in [('Users','people','tab-users'),('Products','box-seam','tab-products'),('Messages','chat-dots','tab-messages'),('Top Sellers','trophy','tab-sellers'),('Mod Log','journal-text','tab-modlog')] %}
+    <button class="admin-tab {% if loop.first %}active{% endif %}" data-target="{{ id }}">
+      <i class="bi bi-{{ icon }} me-1"></i>{{ tab }}
+    </button>
+    {% endfor %}
+  </div>
+
+  <!-- Users Tab -->
+  <div id="tab-users" class="admin-pane">
+    <div class="admin-table">
+      <table class="table table-dark mb-0">
+        <thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Upload</th><th>Comment</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for u in users %}
+          <tr class="admin-row">
+            <td>{{ u.id }}</td>
+            <td><a href="{{ url_for('profile',uid=u.id) }}" style="color:var(--text-1);">{{ u.username }}</a></td>
+            <td style="color:var(--text-3);">{{ u.email }}</td>
+            <td>{% if u.is_admin %}<span class="badge-gold">Admin</span>{% else %}<span class="badge-glass">User</span>{% endif %}</td>
+            <td><span class="{% if u.can_upload %}perm-on{% else %}perm-off{% endif %}"><i class="bi bi-{% if u.can_upload %}check-circle{% else %}x-circle{% endif %}"></i> {% if u.can_upload %}On{% else %}Off{% endif %}</span></td>
+            <td><span class="{% if u.can_comment %}perm-on{% else %}perm-off{% endif %}"><i class="bi bi-{% if u.can_comment %}check-circle{% else %}x-circle{% endif %}"></i> {% if u.can_comment %}On{% else %}Off{% endif %}</span></td>
+            <td>{% if u.is_suspended %}<span style="color:#fca5a5;font-size:.72rem;">Suspended</span>{% else %}<span style="color:#86efac;font-size:.72rem;">Active</span>{% endif %}</td>
+            <td style="color:var(--text-3);font-size:.75rem;">{{ u.created_at[:10] }}</td>
+            <td>
+              {% if not u.is_admin %}
+              <div class="d-flex gap-1 flex-wrap">
+                <form method="post" action="{{ url_for('admin_suspend_user',uid=u.id) }}" style="display:inline;">
+                  <button class="btn btn-sm confirm-delete" data-confirm="{% if u.is_suspended %}Restore{% else %}Suspend{% endif %} {{ u.username }}?" style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.28);color:#fcd34d;border-radius:6px;font-size:.7rem;padding:.2rem .5rem;white-space:nowrap;">{% if u.is_suspended %}🟢 Restore{% else %}⏸ Suspend{% endif %}</button>
+                </form>
+                <form method="post" action="{{ url_for('admin_toggle_permission',uid=u.id,perm='can_upload') }}" style="display:inline;">
+                  <button class="btn btn-sm" style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.28);color:#93c5fd;border-radius:6px;font-size:.7rem;padding:.2rem .5rem;white-space:nowrap;">📤 {% if u.can_upload %}Revoke Upload{% else %}Allow Upload{% endif %}</button>
+                </form>
+                <form method="post" action="{{ url_for('admin_toggle_permission',uid=u.id,perm='can_comment') }}" style="display:inline;">
+                  <button class="btn btn-sm" style="background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.28);color:#c4b5fd;border-radius:6px;font-size:.7rem;padding:.2rem .5rem;white-space:nowrap;">💬 {% if u.can_comment %}Revoke Comment{% else %}Allow Comment{% endif %}</button>
+                </form>
+                <form method="post" action="{{ url_for('admin_delete_user',uid=u.id) }}" style="display:inline;">
+                  <button class="btn btn-sm btn-danger-soft confirm-delete" data-confirm="PERMANENTLY delete {{ u.username }} and all their data?" style="font-size:.7rem;padding:.2rem .5rem;border-radius:6px;white-space:nowrap;">🗑 Delete</button>
+                </form>
+              </div>
+              {% else %}
+              <span style="color:var(--text-muted);font-size:.72rem;">Protected</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Products Tab -->
+  <div id="tab-products" class="admin-pane" style="display:none;">
+    <div class="admin-table">
+      <table class="table table-dark mb-0">
+        <thead><tr><th>ID</th><th>Title</th><th>Seller</th><th>Category</th><th>Price</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+        <tbody>
+          {% for p in products %}
+          <tr class="admin-row">
+            <td>{{ p.id }}</td>
+            <td><a href="{{ url_for('product_detail',pid=p.id) }}" style="color:var(--text-1);">{{ p.title[:35] }}{% if p.title|length>35 %}…{% endif %}</a></td>
+            <td style="color:var(--text-3);">{{ p.seller }}</td>
+            <td><span class="badge-glass">{{ p.cat or '—' }}</span></td>
+            <td style="color:var(--gold-400);font-weight:600;">¥{{ '%.0f'|format(p.price) }}</td>
+            <td>{% if p.status=='available' %}<span class="badge-available">Available</span>{% elif p.status=='sold' %}<span class="badge-sold">Sold</span>{% else %}<span class="badge-reserved">Reserved</span>{% endif %}</td>
+            <td style="color:var(--text-3);font-size:.75rem;">{{ p.created_at[:10] }}</td>
+            <td>
+              <form method="post" action="{{ url_for('admin_delete_product',pid=p.id) }}" style="display:inline;">
+                <button class="btn btn-sm btn-danger-soft confirm-delete" data-confirm="Delete '{{ p.title[:30] }}'?" style="font-size:.72rem;padding:.2rem .55rem;border-radius:6px;">🗑 Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Messages Tab -->
+  <div id="tab-messages" class="admin-pane" style="display:none;">
+    <div class="admin-table">
+      <table class="table table-dark mb-0">
+        <thead><tr><th>ID</th><th>From</th><th>To</th><th>Message</th><th>Date</th><th>Action</th></tr></thead>
+        <tbody>
+          {% for m in messages %}
+          <tr class="admin-row">
+            <td>{{ m.id }}</td>
+            <td>{{ m.sname }}</td>
+            <td>{{ m.rname }}</td>
+            <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-3);">{{ m.content }}</td>
+            <td style="color:var(--text-muted);font-size:.72rem;">{{ m.created_at[:16] }}</td>
+            <td>
+              <form method="post" action="{{ url_for('admin_delete_message',mid=m.id) }}" style="display:inline;">
+                <button class="btn btn-sm btn-danger-soft" style="font-size:.72rem;padding:.2rem .55rem;border-radius:6px;">🗑</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Top Sellers Tab -->
+  <div id="tab-sellers" class="admin-pane" style="display:none;">
+    <div class="glass-card p-4">
+      <p class="sec-label mb-3">Most Active Sellers</p>
+      {% for s in top_sellers %}
+      <div class="d-flex align-items-center gap-3 mb-3 pb-3" style="border-bottom:1px solid var(--glass-border);">
+        <div style="width:28px;text-align:center;font-family:'Cinzel',serif;color:var(--gold-400);font-weight:700;">{{ loop.index }}</div>
+        <div class="seller-avatar" style="width:38px;height:38px;font-size:.9rem;">{{ s.username[0].upper() }}</div>
+        <div class="flex-grow-1">
+          <a href="{{ url_for('profile',uid=s.id) }}" style="color:var(--white);font-weight:600;font-size:.9rem;">{{ s.username }}</a>
+        </div>
+        <span class="badge-glass">{{ s.cnt }} listings</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Mod Log Tab -->
+  <div id="tab-modlog" class="admin-pane" style="display:none;">
+    <div class="admin-table">
+      <table class="table table-dark mb-0">
+        <thead><tr><th>Time</th><th>Admin</th><th>Action</th><th>Target</th><th>Note</th></tr></thead>
+        <tbody>
+          {% for l in mod_logs %}
+          <tr class="admin-row">
+            <td style="font-size:.72rem;color:var(--text-muted);">{{ l.created_at[:16] }}</td>
+            <td style="color:var(--gold-400);">{{ l.admin_name }}</td>
+            <td><span class="badge-glass">{{ l.action }}</span></td>
+            <td style="color:var(--text-3);">{{ l.target_type }} #{{ l.target_id }}</td>
+            <td style="color:var(--text-3);font-size:.8rem;">{{ l.note }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

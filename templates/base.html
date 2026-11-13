@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>{% block title %}Majestic Market{% endblock %}</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="{{ url_for('static',filename='css/style.css') }}" rel="stylesheet"/>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- ── Navbar ──────────────────────────────────────────────── -->
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="{{ url_for('index') }}">✦ Majestic<span>Market</span></a>
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <i class="bi bi-list" style="color:var(--gold-400);font-size:1.5rem;"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto align-items-center gap-1">
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}"><i class="bi bi-house me-1"></i>Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('products') }}"><i class="bi bi-grid me-1"></i>Browse</a></li>
+        {% if session.get('user_id') %}
+          {% if session.get('can_upload',True) %}
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('new_product') }}"><i class="bi bi-plus-circle me-1"></i>Sell</a></li>
+          {% endif %}
+          <li class="nav-item" style="position:relative;">
+            <a class="nav-link" href="{{ url_for('messages_inbox') }}">
+              <i class="bi bi-chat me-1"></i>Messages
+              {% if unread_count > 0 %}<span class="nav-badge">{{ unread_count }}</span>{% endif %}
+            </a>
+          </li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('favorites') }}"><i class="bi bi-heart me-1"></i>Saved</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('ai_assistant') }}"><i class="bi bi-stars me-1"></i>AI</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}"><i class="bi bi-person-circle me-1"></i>{{ session.username }}</a></li>
+          {% if session.get('is_admin') %}
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_dashboard') }}" style="color:var(--gold-400)!important"><i class="bi bi-shield-check me-1"></i>Admin</a></li>
+          {% endif %}
+          <li class="nav-item ms-1"><a class="btn btn-outline-gold btn-sm" href="{{ url_for('logout') }}">Logout</a></li>
+        {% else %}
+          <li class="nav-item ms-1"><a class="btn btn-glass btn-sm" href="{{ url_for('login') }}">Login</a></li>
+          <li class="nav-item ms-1"><a class="btn btn-gold btn-sm" href="{{ url_for('register') }}">Register</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Flash (hidden — converted to toasts by JS) -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div style="display:none" aria-hidden="true">
+      {% for cat,msg in messages %}
+        <div class="alert alert-{{ cat }}"><span class="alert-msg">{{ msg }}</span></div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<!-- Page -->
+{% block content %}{% endblock %}
+
+<!-- Back to top -->
+<div id="back-top" title="Back to top"><i class="bi bi-chevron-up"></i></div>
+
+<!-- Floating AI button -->
+<a href="{{ url_for('ai_assistant') }}" id="ai-fab" title="AI Assistant">✦</a>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<!-- Footer -->
+<footer>
+  <div class="container footer-inner">
+    <div class="footer-brand">✦ MajesticMarket</div>
+    <div class="footer-line"></div>
+    <div class="footer-info">
+      <p>Student Name: JAD AARAB &nbsp;|&nbsp; Student ID: F23040232</p>
+      <p>Specialized Course Design II</p>
+      <p>Nanjing University of Posts and Telecommunications</p>
+    </div>
+    <p class="footer-copy">© Second-Hand Marketplace System
+Developed using Python, Flask & SQLite</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static',filename='js/script.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

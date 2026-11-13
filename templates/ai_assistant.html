@@ -1,0 +1,60 @@
+{% extends "base.html" %}{% block title %}AI Assistant — Majestic Market{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:3rem;padding-bottom:4rem;">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="text-center mb-4">
+        <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--gold-600),var(--gold-400));display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--navy-950);margin:0 auto 1rem;box-shadow:0 0 32px var(--gold-glow);">✦</div>
+        <span class="badge-glass mb-2 d-inline-block">Rule-Based AI · Powered by SQLite</span>
+        <h1 class="sec-title">AI <span class="acc">Shopping Assistant</span></h1>
+        <p style="color:var(--text-3);font-size:.88rem;max-width:480px;margin:.5rem auto 0;">I search the live marketplace database on every message — always up to date, no API required.</p>
+      </div>
+
+      <!-- Quick chips -->
+      <div class="text-center mb-4">
+        <p style="color:var(--text-muted);font-size:.76rem;margin-bottom:.6rem;text-transform:uppercase;letter-spacing:.07em;">Try asking:</p>
+        <span class="ai-chip" onclick="sendChip('I need a laptop under 5000 RMB')">💻 Laptop under ¥5000</span>
+        <span class="ai-chip" onclick="sendChip('Show me gaming products')">🎮 Gaming gear</span>
+        <span class="ai-chip" onclick="sendChip('Cheapest electronics')">⚡ Budget electronics</span>
+        <span class="ai-chip" onclick="sendChip('Help me write a product description')">📝 Write description</span>
+        <span class="ai-chip" onclick="sendChip('Newest furniture')">🪑 New furniture</span>
+        <span class="ai-chip" onclick="sendChip('Pricing advice')">💰 Pricing tips</span>
+        <span class="ai-chip" onclick="sendChip('Show statistics')">📊 Market stats</span>
+      </div>
+
+      <!-- Chat window -->
+      <div class="glass-card" style="overflow:hidden;">
+        <div class="ai-window" id="aiChatContainer">
+          <!-- Welcome message -->
+          <div class="d-flex align-items-end mb-3 gap-2">
+            <div class="ai-avatar">✦</div>
+            <div class="ai-bubble bot">
+              <strong style="color:var(--gold-400);">Majestic AI Assistant</strong><br><br>
+              Hello! 👋 I can search <b>all marketplace listings</b> in real time.<br><br>
+              Try:<br>
+              • <em>"iPhone under 2000 RMB"</em><br>
+              • <em>"Show gaming products"</em><br>
+              • <em>"Cheapest laptop"</em><br>
+              • <em>"Help me write a description"</em><br>
+              • <em>"Pricing advice"</em><br><br>
+              What are you looking for?
+            </div>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <form id="aiChatForm" autocomplete="off">
+            <div class="d-flex gap-2">
+              <input type="text" id="aiInput" class="form-control" placeholder="Ask me anything about the marketplace…"/>
+              <button type="submit" class="btn btn-gold" style="white-space:nowrap;"><i class="bi bi-send"></i></button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="glass-card p-3 mt-3" style="border-color:rgba(201,168,76,.1);">
+        <p style="color:var(--text-muted);font-size:.74rem;text-align:center;margin:0;"><i class="bi bi-info-circle me-1" style="color:var(--gold-500)"></i>This AI uses <strong style="color:var(--text-2);">rule-based Python logic + live SQLite queries</strong>. No paid APIs. Always reflects current listings.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

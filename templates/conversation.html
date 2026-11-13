@@ -1,0 +1,54 @@
+{% extends "base.html" %}{% block title %}Chat with {{ other.username }} — Majestic Market{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:3rem;padding-bottom:4rem;max-width:780px;">
+  <!-- Header -->
+  <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+    <a href="{{ url_for('messages_inbox') }}" class="btn btn-glass btn-sm"><i class="bi bi-arrow-left me-1"></i>Inbox</a>
+    <div class="d-flex align-items-center gap-2 flex-grow-1">
+      <div class="seller-avatar" style="width:40px;height:40px;font-size:.9rem;">{{ other.username[0].upper() }}</div>
+      <div>
+        <strong style="color:var(--white);font-size:.95rem;">{{ other.username }}</strong>
+        {% if prod %}<p style="color:var(--text-muted);font-size:.75rem;margin:0;"><i class="bi bi-tag me-1" style="color:var(--gold-500)"></i>Re: <a href="{{ url_for('product_detail',pid=prod.id) }}" style="color:var(--gold-400);">{{ prod.title }}</a></p>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden metadata for JS polling -->
+  <input type="hidden" id="otherUserId" value="{{ other_id }}"/>
+  <input type="hidden" id="currentUserId" value="{{ session.user_id }}"/>
+
+  <!-- Chat window -->
+  <div class="glass-card" style="overflow:hidden;">
+    <div class="chat-window" id="chatWindow" data-last-time="{{ msgs[-1].created_at if msgs else '2000-01-01 00:00:00' }}">
+      {% if msgs %}
+        {% for m in msgs %}
+        <div class="d-flex {% if m.sender_id==session.user_id %}justify-content-end{% endif %}">
+          <div class="chat-bubble {% if m.sender_id==session.user_id %}sent{% else %}recv{% endif %}">
+            {% if m.sender_id!=session.user_id %}<div class="chat-sender">{{ m.sname }}</div>{% endif %}
+            {{ m.content }}
+            <span class="chat-meta">{{ m.created_at[11:16] }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+      <div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:.85rem;">No messages yet. Say hello! 👋</div>
+      {% endif %}
+    </div>
+    <div class="chat-input-area">
+      <form method="post" action="{{ url_for('conversation',other_id=other_id,product_id=product_id) if product_id else url_for('conversation',other_id=other_id) }}" id="msgForm">
+        <div class="d-flex gap-2">
+          <input type="text" name="content" id="msgInput" class="form-control" placeholder="Type your message…" required autocomplete="off"/>
+          <button type="submit" class="btn btn-gold" style="white-space:nowrap;"><i class="bi bi-send"></i></button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+  // Scroll to bottom on load
+  const cw = document.getElementById('chatWindow');
+  if(cw) cw.scrollTop = cw.scrollHeight;
+</script>
+{% endblock %}

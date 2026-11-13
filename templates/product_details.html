@@ -1,0 +1,166 @@
+{% extends "base.html" %}{% block title %}{{ p.title }} — Majestic Market{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:3rem;padding-bottom:4rem;">
+
+  <!-- Breadcrumb -->
+  <div class="bc">
+    <a href="{{ url_for('index') }}">Home</a><span class="bc-sep">›</span>
+    <a href="{{ url_for('products') }}">Products</a><span class="bc-sep">›</span>
+    <a href="{{ url_for('products') }}?category={{ p.category_id }}">{{ p.cat }}</a><span class="bc-sep">›</span>
+    <span class="bc-cur">{{ p.title[:40] }}</span>
+  </div>
+
+  <div class="row g-5">
+    <!-- Image -->
+    <div class="col-lg-5">
+      <img src="{{ product_image_url(p.image) }}" class="detail-img" alt="{{ p.title }}"
+           onerror="this.src='https://picsum.photos/seed/det{{ p.id }}/600/450'"/>
+      <!-- Share -->
+      <div class="d-flex gap-2 mt-3">
+        <button class="btn btn-glass btn-sm" onclick="navigator.clipboard.writeText(window.location.href);showToast('Link copied!','success')">
+          <i class="bi bi-share me-1"></i>Share
+        </button>
+        {% if session.get('user_id') and session.user_id != p.seller_uid %}
+        <form method="post" action="{{ url_for('toggle_favorite',pid=p.id) }}" style="display:inline;">
+          <button type="submit" class="btn btn-glass btn-sm {% if faved %}text-gold{% endif %}">
+            <i class="bi bi-heart{% if faved %}-fill{% endif %} me-1"></i>{{ 'Saved' if faved else 'Save' }}
+          </button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Details -->
+    <div class="col-lg-7">
+      <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+        <span class="badge-glass"><i class="bi bi-{{ p.cat_icon }} me-1"></i>{{ p.cat }}</span>
+        <span class="badge-condition">{{ p.condition }}</span>
+        {% if p.status=='available' %}<span class="badge-available">Available</span>
+        {% elif p.status=='sold' %}<span class="badge-sold">Sold</span>
+        {% else %}<span class="badge-reserved">Reserved</span>{% endif %}
+        <span style="color:var(--text-muted);font-size:.75rem;"><i class="bi bi-eye me-1"></i>{{ p.views }} views</span>
+      </div>
+
+      <h1 style="font-family:'Cinzel',serif;font-size:1.8rem;color:var(--white);margin-bottom:1rem;">{{ p.title }}</h1>
+      <div class="price-big mb-3">¥{{ '%.0f'|format(p.price) }}</div>
+
+      <div class="glass-card p-3 mb-4">
+        <p style="color:var(--text-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem;">Description</p>
+        <p style="color:var(--text-2);font-size:.92rem;line-height:1.85;margin:0;">{{ p.description }}</p>
+      </div>
+
+      <!-- Seller card -->
+      <div class="seller-mini-card mb-4">
+        <p style="color:var(--text-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.7rem;">Seller</p>
+        <div class="d-flex align-items-center gap-3">
+          <div class="seller-avatar">{{ p.seller[0].upper() }}</div>
+          <div class="flex-grow-1">
+            <a href="{{ url_for('profile',uid=p.seller_uid) }}" style="color:var(--white);font-weight:600;font-size:.95rem;">{{ p.seller }}</a>
+            {% if p.seller_bio %}<p style="color:var(--text-3);font-size:.78rem;margin:.1rem 0 0;">{{ p.seller_bio[:80] }}</p>{% endif %}
+            <p style="color:var(--text-muted);font-size:.72rem;margin:.1rem 0 0;">
+              <i class="bi bi-box-seam me-1"></i>{{ seller_stats.total }} listings &nbsp;·&nbsp;
+              <i class="bi bi-check-circle me-1"></i>{{ seller_stats.sold }} sold
+              {% if avg_rating > 0 %}
+              &nbsp;·&nbsp; <span class="stars-sm">{% for i in range(avg_rating|int) %}★{% endfor %}</span> {{ '%.1f'|format(avg_rating) }} ({{ review_count }})
+              {% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      {% if session.get('user_id') %}
+        {% if session.user_id != p.seller_uid %}
+          <div class="d-flex gap-3 flex-wrap">
+            <a href="{{ url_for('conversation',other_id=p.seller_uid,product_id=p.id) }}" class="btn btn-gold"><i class="bi bi-chat-dots me-2"></i>Message Seller</a>
+            <a href="{{ url_for('profile',uid=p.seller_uid) }}" class="btn btn-glass"><i class="bi bi-person me-2"></i>View Profile</a>
+          </div>
+        {% else %}
+          <div class="d-flex gap-3 flex-wrap">
+            <span class="badge-gold" style="padding:.6rem 1.2rem;">Your Listing</span>
+            <a href="{{ url_for('edit_product',pid=p.id) }}" class="btn btn-glass"><i class="bi bi-pencil me-2"></i>Edit</a>
+            <form method="post" action="{{ url_for('delete_product',pid=p.id) }}" style="display:inline;">
+              <button class="btn btn-danger-soft confirm-delete" data-confirm="Delete this listing permanently?"><i class="bi bi-trash me-1"></i>Delete</button>
+            </form>
+          </div>
+        {% endif %}
+      {% else %}
+        <a href="{{ url_for('login') }}" class="btn btn-gold"><i class="bi bi-box-arrow-in-right me-2"></i>Login to Contact Seller</a>
+      {% endif %}
+
+      <p style="color:var(--text-muted);font-size:.75rem;margin-top:1rem;"><i class="bi bi-calendar3 me-1"></i>Listed {{ p.created_at[:10] }}</p>
+    </div>
+  </div>
+
+  <!-- Quick message -->
+  {% if session.get('user_id') and session.user_id != p.seller_uid and p.status=='available' %}
+  <div class="divider-gold"></div>
+  <div class="row"><div class="col-lg-7">
+    <h3 style="font-family:'Cinzel',serif;font-size:1.2rem;color:var(--white);margin-bottom:1rem;"><i class="bi bi-chat me-2" style="color:var(--gold-400)"></i>Quick Message</h3>
+    <div class="glass-card p-4">
+      <form method="post" action="{{ url_for('send_message',seller_id=p.seller_uid,pid=p.id) }}">
+        <textarea name="content" class="form-control mb-3" placeholder="Hi, is this still available?" rows="3" required></textarea>
+        <button type="submit" class="btn btn-gold"><i class="bi bi-send me-2"></i>Send Message</button>
+      </form>
+    </div>
+  </div></div>
+  {% endif %}
+
+  <!-- Reviews -->
+  <div class="divider-gold"></div>
+  <div class="row g-5">
+    <div class="col-lg-8">
+      <h3 style="font-family:'Cinzel',serif;font-size:1.2rem;color:var(--white);margin-bottom:1.5rem;"><i class="bi bi-star me-2" style="color:var(--gold-400)"></i>Seller Reviews <span style="color:var(--text-muted);font-size:.85rem;font-family:'Inter',sans-serif;">({{ review_count }})</span></h3>
+
+      <!-- Leave review -->
+      {% if session.get('user_id') and session.user_id != p.seller_uid %}
+      {% if session.get('can_comment',True) %}
+      <div class="glass-card p-4 mb-4">
+        <p style="color:var(--text-2);font-size:.85rem;font-weight:600;margin-bottom:1rem;">{{ 'Update Your Review' if existing_review else 'Leave a Review' }}</p>
+        <form method="post" action="{{ url_for('add_review',pid=p.id) }}">
+          <div class="star-input mb-3">
+            {% for i in [5,4,3,2,1] %}
+            <input type="radio" name="rating" id="s{{ i }}" value="{{ i }}" {% if existing_review and existing_review.rating==i %}checked{% elif not existing_review and i==5 %}checked{% endif %} required/>
+            <label for="s{{ i }}">★</label>
+            {% endfor %}
+          </div>
+          <textarea name="comment" class="form-control mb-3" placeholder="Share your experience…" rows="2">{{ existing_review.comment if existing_review else '' }}</textarea>
+          <button type="submit" class="btn btn-gold btn-sm"><i class="bi bi-star me-1"></i>Submit Review</button>
+        </form>
+      </div>
+      {% else %}
+      <div class="glass-card p-3 mb-4" style="border-color:rgba(239,68,68,.2);">
+        <p style="color:#fca5a5;font-size:.85rem;margin:0;"><i class="bi bi-lock me-1"></i>Your commenting permission has been revoked.</p>
+      </div>
+      {% endif %}
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Related products -->
+  {% if related %}
+  <div class="divider-gold"></div>
+  <div class="sec-head mb-4">
+    <span class="sec-label">Same Category</span>
+    <h3 class="sec-title" style="font-size:1.4rem;">Related <span class="acc">Products</span></h3>
+  </div>
+  <div class="row g-4">
+    {% for r in related %}
+    <div class="col-lg-3 col-md-6">
+      <a href="{{ url_for('product_detail',pid=r.id) }}" style="text-decoration:none;">
+        <div class="product-card">
+          <div class="pc-img-wrap"><img src="{{ product_image_url(r.image) }}" class="pc-img" alt="{{ r.title }}" loading="lazy" onerror="this.src='https://picsum.photos/seed/rel{{ r.id }}/600/450'"/></div>
+          <div class="pc-body">
+            <p class="pc-cat">{{ r.cat }}</p>
+            <p class="pc-title">{{ r.title }}</p>
+            <p class="pc-price">¥{{ '%.0f'|format(r.price) }}</p>
+          </div>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

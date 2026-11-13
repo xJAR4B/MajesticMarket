@@ -1,0 +1,64 @@
+{% extends "base.html" %}{% block title %}List a Product — Majestic Market{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:3rem;padding-bottom:4rem;max-width:800px;">
+  <div class="mb-4">
+    <span class="sec-label">Sell on Majestic Market</span>
+    <h1 class="sec-title">List a <span class="acc">New Product</span></h1>
+    <div class="sec-line"></div>
+  </div>
+  <div class="glass-card p-4">
+    <form method="post" enctype="multipart/form-data">
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label"><i class="bi bi-tag me-1"></i>Product Title *</label>
+          <input type="text" name="title" class="form-control" placeholder="e.g. Apple iPhone 13 Pro Max 256GB" required maxlength="120"/>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><i class="bi bi-grid me-1"></i>Category *</label>
+          <select name="category_id" class="form-select" required>
+            <option value="">Select category…</option>
+            {% for c in categories %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label"><i class="bi bi-currency-yen me-1"></i>Price (¥) *</label>
+          <input type="number" name="price" class="form-control price-input" placeholder="0.00" step="0.01" min="0" required/>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label"><i class="bi bi-star me-1"></i>Condition *</label>
+          <select name="condition" class="form-select">
+            <option value="Like New">Like New</option>
+            <option value="Good" selected>Good</option>
+            <option value="Fair">Fair</option>
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label d-flex justify-content-between">
+            <span><i class="bi bi-text-paragraph me-1"></i>Description *</span>
+            <span class="form-text"><span id="descCount">0</span>/2000</span>
+          </label>
+          <textarea name="description" id="descriptionField" class="form-control" placeholder="Describe your item: condition, features, reason for selling, what's included…" rows="5" required maxlength="2000"></textarea>
+        </div>
+        <div class="col-12">
+          <label class="form-label"><i class="bi bi-image me-1"></i>Product Photo</label>
+          <div class="upload-zone" onclick="document.getElementById('imageInput').click()">
+            <i class="bi bi-cloud-upload" style="font-size:2rem;color:var(--gold-400);display:block;margin-bottom:.5rem;"></i>
+            <p style="color:var(--text-2);margin:0;font-size:.9rem;">Click to upload or drag &amp; drop</p>
+            <p class="form-text">PNG, JPG, GIF, WEBP — max 16MB</p>
+            <input type="file" name="image" id="imageInput" accept="image/*"/>
+          </div>
+          <img id="imagePreview" src="" alt="Preview" style="display:none;max-height:220px;border-radius:var(--radius);margin-top:1rem;border:1px solid var(--glass-border);"/>
+        </div>
+      </div>
+      <div class="glass-card p-3 mt-4" style="border-color:rgba(201,168,76,.12);background:rgba(201,168,76,.03);">
+        <p style="color:var(--gold-400);font-size:.78rem;font-weight:600;margin-bottom:.4rem;"><i class="bi bi-lightbulb me-1"></i>Tips for a great listing</p>
+        <p style="color:var(--text-muted);font-size:.75rem;margin:0;line-height:2;">• Upload clear, well-lit photos &nbsp;•&nbsp; State brand, model, and age &nbsp;•&nbsp; Mention any defects honestly &nbsp;•&nbsp; Research similar items to price right</p>
+      </div>
+      <div class="d-flex gap-3 mt-4">
+        <button type="submit" class="btn btn-gold"><i class="bi bi-check-circle me-2"></i>Publish Listing</button>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-glass">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
