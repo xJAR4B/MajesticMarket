@@ -1,4 +1,3 @@
----
 | Username  | Password      |
 | --------- | ------------- |
 | admin     | `admin123`    |
@@ -7,7 +6,6 @@
 | chen_xin  | `password123` |
 | wang_li   | `password123` |
 | li_na     | `password123` |
-| ljad      | `jad123`      |
 ---
 
 ## ⚡ Quick Start (3 steps)
