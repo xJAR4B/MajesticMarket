@@ -232,6 +232,28 @@ MajesticMarket explores the development of a full-stack web application, bringin
 
 ---
 
+## 📸 Screenshots
+
+### Homepage
+<img src="homepage.png" width="800" alt="MajesticMarket Homepage">
+
+### Product Details
+<img src="product-details.png" width="800" alt="Product Details">
+
+### User Dashboard
+<img src="user-dashboard.png" width="800" alt="User Dashboard">
+
+### Messaging
+<img src="messaging.png" width="800" alt="Buyer-Seller Messaging">
+
+### AI Shopping Assistant
+<img src="ai-assistant.png" width="800" alt="AI Shopping Assistant">
+
+### Admin Dashboard
+<img src="admin-dashboard.png" width="800" alt="Admin Dashboard">
+
+---
+
 <div align="center">
 
 ### Built with Python, creativity, and ambition.
@@ -243,3 +265,4 @@ MajesticMarket explores the development of a full-stack web application, bringin
 ⭐ If you find this project interesting, consider giving it a star.
 
 </div>
+
